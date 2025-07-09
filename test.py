@@ -36,6 +36,7 @@ def preprocess_image(models, img_path):
     img = Image.open(img_path)
     print('old input_im:', img.size)
     if img.mode == 'RGBA':
+        print('RGBA image detected, using alpha channel for background removal.')
         img = np.array(img, dtype=np.float32) / 255.0
         img = img[:, :, 3:4] * img+ (1.0 - img[:, :, 3:4]) * np.ones_like(img)
         img = img[:, :, :3]
@@ -167,7 +168,7 @@ def run_demo():
 
     parser.add_argument('--gpu', type=int, default=0, help='the gpu num')
     parser.add_argument('--resume', type=str, default='./checkpoints/', help='the pre-trained checkpoint')
-    parser.add_argument('--sam_path', type=str, default='', help='the pre-trained sam checkpoint')
+    # parser.add_argument('--sam_path', type=str, default='', help='the pre-trained sam checkpoint')
     parser.add_argument('--config', type=str, default='configs/free3d_test.yaml')
     parser.add_argument('--img_path', type=str, default='./examples/one2-3-45', help='render the target images or videos')
     parser.add_argument('--gen_type', type=str, default='video', help='render the target images or videos')
@@ -187,8 +188,8 @@ def run_demo():
     models['free3d'].to(device)
     models['free3d'].eval()
     # background removal model
-    print('Instantiating SAM model...')
-    models['sam'] = sam_init(opt.gpu, opt.sam_path)
+    # print('Instantiating SAM model...')
+    # models['sam'] = sam_init(opt.gpu, opt.sam_path)
     
     # image path
     os.makedirs(opt.save_path, exist_ok=True)
