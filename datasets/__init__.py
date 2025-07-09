@@ -3,11 +3,13 @@ from torch.utils.data import DataLoader
 from datasets.objaverse import ObjaverseDataset
 from datasets.omniobject3d import OmniObject3DDataset
 from datasets.googlescan import GoogleScannedDataset
+from datasets.sss_dataset import SSSDataset
 
 datasets = {
     'objaverse': ObjaverseDataset,
     'omniobject': OmniObject3DDataset,
     'gso': GoogleScannedDataset,
+    'sss': SSSDataset,
 }
 
 class DataModuleFromConfig(pl.LightningDataModule):
