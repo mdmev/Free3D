@@ -39,12 +39,12 @@ def run_demo():
     print('Instantiating LatentDiffusion...')
     config['model']['params']['ckpt_path'] = opt.resume
     model = instantiate_from_config(config.model)
-    model.to(device)
+    model.to(device=device)
     model.eval()
     # load the dataset
     print('Preparing to load dataset on gpu')
-    config['data']['params']['batch_size'] = 32
-    config['data']['params']['num_workers'] = 32
+    config['data']['params']['batch_size'] = 1
+    config['data']['params']['num_workers'] = 1
     data = instantiate_from_config(config.data)
     # set the evaluation dataset
     # only the objaverse dataset is used for training
@@ -54,14 +54,15 @@ def run_demo():
     else:
         test_data = data.train_dataloader() 
     # save path
-    root = os.path.join(opt.save_path, opt.resume.split('/')[-3])
+    root = os.path.join(opt.save_path)
     for data in test_data:
 
         # render the target images given pose
         if 'images' in opt.gen_type:
+            # with torch.cuda.amp.autocast(dtype=torch.float16):
             images = model.log_images(data, N=data['images'].size()[0], n_row=data['images'].size()[0],
-                                      ddim_steps=50, inpaint=True, plot_progressive_rows=False, plot_diffusion_rows=False,
-                                      unconditional_guidance_scale=3.0, unconditional_guidance_label=[""], use_ema_scope=False)
+                                      ddim_steps=50, inpaint=False, plot_progressive_rows=False, plot_diffusion_rows=False,
+                                      unconditional_guidance_scale=3.0, unconditional_guidance_label=[""], use_ema_scope=True)
             for k in images:
                 if isinstance(images[k], torch.Tensor):
                     if images[k].size(0) == data['images'].size()[0]:
@@ -69,6 +70,7 @@ def run_demo():
                     else:
                         grid = tensor2image(rearrange(images[k], '(b v) ... -> b v ...', v=config.model.params.unet_config.params.views)[:,1,...])
                     for i in range(grid.shape[0]):
+                        print(f'{data["filename"]}')
                         filename = k + '/' + data['filename'][i] + '.png' 
                         path = os.path.join(root, filename)
                         os.makedirs(os.path.split(path)[0], exist_ok=True)
@@ -78,7 +80,7 @@ def run_demo():
         n_frames = 50
         if 'videos' in opt.gen_type:
             images = model.log_videos(data, N=data['images'].size()[0], n_row=data['images'].size()[0],
-                                      ddim_steps=50,inpaint=True, plot_progressive_rows=False, plot_diffusion_rows=False,
+                                      ddim_steps=50,inpaint=False, plot_progressive_rows=False, plot_diffusion_rows=False,
                                       unconditional_guidance_scale=3.0, unconditional_guidance_label=[""], use_ema_scope=False,
                                       model='circle', n_frames=n_frames)
 
